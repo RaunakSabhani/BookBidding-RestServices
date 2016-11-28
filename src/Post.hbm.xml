@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+ "-//Hibernate/Hibernate Mapping DTD//EN"
+ "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd" >
+ 
+<hibernate-mapping>
+ <class name="Post" table="post">
+ <id name="postId" type="int" column="post_id" >
+ <generator class="identity"/>
+ </id>
+ <property name="postDate" type="date">
+ <column name="postdate" />
+ </property>
+ <property name="price" type="double">
+ <column name="price" />
+ </property>
+ <many-to-one name="user" class="User" fetch="join">
+  <column name="user_id" not-null="true" />
+ </many-to-one>
+ <many-to-one name="book" class="Book" fetch="join">
+  <column name="book_id" not-null="true" />
+ </many-to-one>
+ </class>
+ </hibernate-mapping>
