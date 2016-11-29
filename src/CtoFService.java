@@ -1,4 +1,6 @@
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -187,36 +189,28 @@ public class CtoFService {
     @Path("/getMyPosts/{username}/{password}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getMyPosts(@PathParam("username") String username, @PathParam("password") String password)
-    {//JSONObject jsonObject = new JSONObject();
+    {
     	PostDAO dao = new PostDAO();
     	ArrayList<HashMap> entries = dao.getMyPosts(username, password);
     	
-/*			jsonObject.append("posts", entries);
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}*/
-    	//return entries;
     	GenericEntity<ArrayList<HashMap>> entity = new GenericEntity<ArrayList<HashMap>>(entries) {};
     	return Response.status(200).entity(entries).build();
-    	//return new JSONArray(entries);
     }
 
-    @GET
-    @Path("/addBid/{userName}/{password}/{postID}/{bidValue}")
-    public Response addBid(@PathParam("userName") String userName, @PathParam("password") String password, @PathParam("postID") Long postID, @PathParam("bidValue") Double bidValue)
+    @POST
+    @Path("/addBid")
+    public Response addBid(@FormParam("username") String username, @FormParam("password") String password, @FormParam("postID") Long postID, @FormParam("bidPrice") String bidPrice)
     {
     	UserDAO dao = new UserDAO();
-    	User currentUser = dao.getUser(userName, password);
+    	User currentUser = dao.getUser(username, password);
 
     	PostDAO postDAO = new PostDAO();
-    	//Post post = postDAO.getPost(postID);
-    	Post post = new Post();
+    	Post post = postDAO.getPostForBid(postID);
     	Bid bid = new Bid();
 
     	bid.setUser(currentUser);
     	bid.setBidDate(new Date());
-    	bid.setBidValue(bidValue);
+    	bid.setBidPrice(Double.parseDouble(bidPrice));
     	bid.setPost(post);
 
     	BidDAO bidDAO = new BidDAO();
@@ -225,5 +219,29 @@ public class CtoFService {
     	return Response.ok().build();
     }
     
+    @GET
+    @Path("/getBids/{postid}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getBids(@PathParam("postid") Long postId)
+    {
+    	BidDAO dao = new BidDAO();
+    	ArrayList<HashMap> entries = dao.getBids(postId);
+    	GenericEntity<ArrayList<HashMap>> entity = new GenericEntity<ArrayList<HashMap>>(entries) {};
+    	return Response.status(200).entity(entries).build();
+    }
+    
+    @GET
+    @Path("/getPostsByName/{bookname}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getPostsByName(@PathParam("bookname") String bookName) throws UnsupportedEncodingException
+    {
+    	System.out.println("Book name is: "+bookName);
+    	System.out.println("Decoded name is: "+URLDecoder.decode(bookName, "UTF-8"));
+    	PostDAO dao = new PostDAO();
+    	ArrayList<HashMap> entries = dao.getPostsByName(URLDecoder.decode(bookName, "UTF-8"));
+    	
+    	GenericEntity<ArrayList<HashMap>> entity = new GenericEntity<ArrayList<HashMap>>(entries) {};
+    	return Response.status(200).entity(entries).build();
+    }
 
 }

@@ -1,3 +1,4 @@
+import java.io.Serializable;
 import java.util.Date;
 
 import javax.persistence.CascadeType;
@@ -7,20 +8,23 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.GeneratedValue;
 
-@Entity
-public class Bid {
+public class Bid implements Serializable{
 
-	@Id
-	@GeneratedValue
-	private Long Id;
-	
-	//@ManyToOne(cascade=CascadeType.MERGE)
+	private int bidId;
 	private Post post;
-	//@ManyToOne(cascade=CascadeType.MERGE)
 	private User user;
 	private Date bidDate;
-	private Double bidValue;
+	private Double bidPrice;
 	
+	public int getBidId()
+	{
+		return this.bidId;
+	}
+	public void setBidId(int bidId)
+	{
+		this.bidId = bidId;
+	}
+
     public Post getPost()
     {
     	return post;
@@ -45,16 +49,16 @@ public class Bid {
     }
     public void setBidDate(Date date)
     {
-    	this.bidDate = bidDate;
+    	this.bidDate = date;
     }
     
-    public Double getBidValue()
+    public Double getBidPrice()
     {
-    	return bidValue;
+    	return bidPrice;
     }
-    public void setBidValue(Double bidValue)
+    public void setBidPrice(Double bidPrice)
     {
-    	this.bidValue = bidValue;
+    	this.bidPrice = bidPrice;
     }
 
 }

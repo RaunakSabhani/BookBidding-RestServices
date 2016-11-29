@@ -13,5 +13,6 @@
  <mapping resource="User.hbm.xml"></mapping>
  <mapping resource="Book.hbm.xml"></mapping>
  <mapping resource="Post.hbm.xml"></mapping>
+ <mapping resource="Bid.hbm.xml"></mapping>
 </session-factory>
 </hibernate-configuration>
