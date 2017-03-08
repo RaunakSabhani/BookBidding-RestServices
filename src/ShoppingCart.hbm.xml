@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+ "-//Hibernate/Hibernate Mapping DTD//EN"
+ "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd" >
+ 
+<hibernate-mapping>
+ <class name="ShoppingCart" table="shoppingcart">
+ <id name="ShoppingCartId" type="int" column="ShoppingCartId" >
+ <generator class="increment"/>
+ </id>
+ <many-to-one name="user" class="User" fetch="join">
+  <column name="user_id"  />
+ </many-to-one>
+<many-to-one name="bid" class="Bid" fetch="join">
+<column name="bid_id" />
+
+</many-to-one>
+<many-to-one name="post" class="Post" fetch="join">
+<column name="post_id" />
+
+</many-to-one>
+
+ <property name="quantity" type="int">
+ 	<column name="quantity"/>
+ </property>
+  <property name="price" type="double">
+ 	<column name="price"/>
+ </property>
+  <property name="description">
+ 	<column name="description"/>
+ </property>
+ </class>
+</hibernate-mapping>
