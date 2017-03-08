@@ -10,29 +10,36 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.codehaus.jettison.json.JSONArray;
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
  
 @Path("ctofservice1")
 public class CtoFService { 
     
+	static String restSecretKey = "abcd";
     @POST
     @Path("/signup")
-    public Response addUser(@FormParam("name") String name, @FormParam("userName") String userName, @FormParam("password") String password, @FormParam("email") String email, @FormParam("birthDate") String birthDate, @FormParam("gender") String gender){
-    	System.out.println("Date is: "+birthDate);
-    	try {
+    public Response addUser(@FormParam("name") String name, @FormParam("userName") String userName, @FormParam("password") String password, @FormParam("email") String email, @FormParam("gender") String gender, @FormParam("secretKey") String secretKey){
+    	if (!restSecretKey.equals(secretKey)) {
+    		return null;
+    	}
+    	System.out.println("NAme is: "+name);
+    	System.out.println("Username is: "+userName);
+    	System.out.println("Password is: "+password);
+
     	User usr = new User();
         usr.setName(name);
         usr.setUsername(userName);
@@ -40,15 +47,10 @@ public class CtoFService {
         usr.setEmail(email);
         
         System.out.println("Initial constraints are: "+usr.getName() + usr.getUsername() + usr.getEmail());
-		SimpleDateFormat format = new SimpleDateFormat("yyyy/MM/dd");
-		Date parsedDate = format.parse(birthDate);
-		
-		System.out.println("Parsed date is: "+parsedDate);
-		java.sql.Date sqlDate = new java.sql.Date(parsedDate.getTime());
-        usr.setBirthDate(sqlDate);
+
         usr.setCreatedDate(new java.sql.Date(new Date().getTime()));
         usr.setLastLoginDate(new java.sql.Date(new Date().getTime()));
-        usr.setLocation("Richardson");
+        usr.setLocation("Location not set");
         usr.setGender(gender);
         
         DateFormat df = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
@@ -57,48 +59,37 @@ public class CtoFService {
                 
         UserDAO dao = new UserDAO();
         dao.addUser(usr);
-    	} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
         
         return Response.ok().build();
     }
 
     @POST
+    @Produces({MediaType.APPLICATION_JSON})
     @Path("/updateUser")
-    public Response updateUser(@FormParam("name") String name, @FormParam("userName") String userName, @FormParam("password") String password, @FormParam("email") String email, @FormParam("birthDate") String birthDate){
-    	System.out.println("Date is: "+birthDate);
-        
-		SimpleDateFormat format = new SimpleDateFormat("yyyy/MM/dd");
-		Date parsedDate = new Date();
-		try {
-			parsedDate = format.parse(birthDate);
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		System.out.println("Parsed date is: "+parsedDate);
-		java.sql.Date sqlDate = new java.sql.Date(parsedDate.getTime());
-        String gender = "M";
-                
+    public Response updateUser(@FormParam("name") String name, @FormParam("username") String username, @FormParam("userid") String userid, @FormParam("email") String email, @FormParam("gender") String gender, @FormParam("secretKey") String secretKey) throws UnsupportedEncodingException{
+    	if (!restSecretKey.equals(secretKey)) {
+    		return null;
+    	}        
         UserDAO dao = new UserDAO();
-        dao.updateUser(userName, password, name, email, sqlDate, gender);
+        dao.updateUser(URLDecoder.decode(username, "UTF-8"), URLDecoder.decode(userid, "UTF-8"),URLDecoder.decode(name, "UTF-8"), URLDecoder.decode(email, "UTF-8"), URLDecoder.decode(gender, "UTF-8"));
         
-        return Response.ok().build();
+        return Response.status(200).build();
     }
 
     @POST
     @Path("/updateLoginDetails")
-    public Response updateLoginDetails(@FormParam("date") String lastLoginDate, @FormParam("time") String lastLoginTime, @FormParam("username") String username, @FormParam("password") String password)
+    public Response updateLoginDetails(@FormParam("date") String lastLoginDate, @FormParam("time") String lastLoginTime, @FormParam("location") String location, @FormParam("userid") String userid, @FormParam("secretKey") String secretKey)
     {
+    	if (!restSecretKey.equals(secretKey)) {
+    		return null;
+    	}
     	try {
     		SimpleDateFormat format = new SimpleDateFormat("yyyy/MM/dd");
     		Date parsedDate = format.parse(lastLoginDate);
     		System.out.println("Parsed date is: "+parsedDate);
     		java.sql.Date sqlDate = new java.sql.Date(parsedDate.getTime());
     		UserDAO dao = new UserDAO();
-    		dao.updateLoginDetails(sqlDate, lastLoginTime, username, password);
+    		dao.updateLoginDetails(sqlDate, lastLoginTime, location, userid);
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -118,30 +109,51 @@ public class CtoFService {
     }*/
     
     @GET
-    @Path("/getBook/{name}/{isbnNo}")
+    @Path("/getBook/{secretKey}/{name}/{isbnNo}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Book getBook(@PathParam("name") String name, @PathParam("isbnNo") String isbnNo){
+    public Book getBook(@PathParam("secretKey") String secretKey, @PathParam("name") String name, @PathParam("isbnNo") String isbnNo){
+    	if (!restSecretKey.equals(secretKey)) {
+    		return null;
+    	}
     	BookDAO bookDAO = new BookDAO();
     	Book book = bookDAO.getBook(name, isbnNo);
     	return book;
     }
     
     @GET
-    @Path("/signin/{userName}/{password}")
+    @Path("/signin/{secretKey}/{userName}/{password}")
     @Produces(MediaType.APPLICATION_JSON)
-    public User getUser(@PathParam("userName") String userName, @PathParam("password") String password) {
+    public User getUser(@PathParam("secretKey") String secretKey, @PathParam("userName") String userName, @PathParam("password") String password) {
+    	if (!restSecretKey.equals(secretKey)) {
+    		return null;
+    	}
     	UserDAO dao = new UserDAO();
     	User currentUser = dao.getUser(userName, password);
     	return currentUser;
     }
     
+    @GET
+    @Path("/getprofile/{secretKey}/{userid}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public User getUser(@PathParam("secretKey") String secretKey, @PathParam("userid") String userid) {
+    	if (!restSecretKey.equals(secretKey)) {
+    		return null;
+    	}
+    	UserDAO dao = new UserDAO();
+    	User currentUser = dao.getUserById(userid);
+    	return currentUser;
+    }
+
     @POST
     @Path("/addPost")
-    public Response addPost(@FormParam("username") String username, @FormParam("password") String password, @FormParam("price") Double price, @FormParam("bookName") String bookName, @FormParam("authorName") String authorName, @FormParam("publisherName") String publisherName)
+    public Response addPost(@FormParam("userid") String userid, @FormParam("price") Double price, @FormParam("bookName") String bookName, @FormParam("authorName") String authorName, @FormParam("publisherName") String publisherName, @FormParam("secretKey") String secretKey)
     {
-    	System.out.println(username + password + price + bookName + authorName + publisherName);
+    	if (!restSecretKey.equals(secretKey)) {
+    		return null;
+    	}
+    	System.out.println(userid + price + bookName + authorName + publisherName);
     	UserDAO dao = new UserDAO();
-    	User currentUser = dao.getUser(username, password);
+    	User currentUser = dao.getUserById(userid);
     	
     	BookDAO bookDAO = new BookDAO();
     	Book book = bookDAO.getBook(bookName, authorName);
@@ -167,31 +179,45 @@ public class CtoFService {
     }
 
     @GET
-    @Path("/getPost/{postId}")
+    @Path("/getPost/{secretKey}/{postId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getPost(@PathParam("postId") Long postId)
+    public Response getPost(@PathParam("secretKey") String secretKey, @PathParam("postId") Long postId)
     {
+    	if (!restSecretKey.equals(secretKey)) {
+    		return null;
+    	}
+    	System.out.println("Over here");
     	PostDAO dao = new PostDAO();
     	HashMap entries =  dao.getPost(postId);
     	return Response.status(200).entity(entries).build();
     }
     
     @GET
-    @Path("/getPosts")
+    @Path("/getPosts/{secretKey}")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Post> getPosts()
+    public Response getPosts(@PathParam("secretKey") String secretKey)
     {
+    	if (!restSecretKey.equals(secretKey)) {
+    		return null;
+    	}
+    	System.out.println("Over here");
     	PostDAO dao = new PostDAO();
-    	return dao.getPosts();
+    	ArrayList<HashMap> entries = dao.getPosts();
+    	
+    	GenericEntity<ArrayList<HashMap>> entity = new GenericEntity<ArrayList<HashMap>>(entries) {};
+    	return Response.status(200).entity(entries).build();
     }
 
     @GET
-    @Path("/getMyPosts/{username}/{password}")
+    @Path("/getMyPosts/{secretKey}/{userid}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getMyPosts(@PathParam("username") String username, @PathParam("password") String password)
+    public Response getMyPosts(@PathParam("secretKey") String secretKey, @PathParam("userid") String userid)
     {
+    	if (!restSecretKey.equals(secretKey)) {
+    		return null;
+    	}
     	PostDAO dao = new PostDAO();
-    	ArrayList<HashMap> entries = dao.getMyPosts(username, password);
+    	ArrayList<HashMap> entries = dao.getMyPosts(userid);
     	
     	GenericEntity<ArrayList<HashMap>> entity = new GenericEntity<ArrayList<HashMap>>(entries) {};
     	return Response.status(200).entity(entries).build();
@@ -199,10 +225,13 @@ public class CtoFService {
 
     @POST
     @Path("/addBid")
-    public Response addBid(@FormParam("username") String username, @FormParam("password") String password, @FormParam("postID") Long postID, @FormParam("bidPrice") String bidPrice)
+    public Response addBid(@FormParam("userid") String userid, @FormParam("postID") Long postID, @FormParam("bidPrice") String bidPrice, @FormParam("secretKey") String secretKey)
     {
+    	if (!restSecretKey.equals(secretKey)) {
+    		return null;
+    	}
     	UserDAO dao = new UserDAO();
-    	User currentUser = dao.getUser(username, password);
+    	User currentUser = dao.getUserById(userid);
 
     	PostDAO postDAO = new PostDAO();
     	Post post = postDAO.getPostForBid(postID);
@@ -220,10 +249,13 @@ public class CtoFService {
     }
     
     @GET
-    @Path("/getBids/{postid}")
+    @Path("/getBids/{secretKey}/{postid}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getBids(@PathParam("postid") Long postId)
+    public Response getBids(@PathParam("secretKey") String secretKey, @PathParam("postid") Long postId)
     {
+    	if (!restSecretKey.equals(secretKey)) {
+    		return null;
+    	}
     	BidDAO dao = new BidDAO();
     	ArrayList<HashMap> entries = dao.getBids(postId);
     	GenericEntity<ArrayList<HashMap>> entity = new GenericEntity<ArrayList<HashMap>>(entries) {};
@@ -231,10 +263,13 @@ public class CtoFService {
     }
     
     @GET
-    @Path("/getPostsByName/{bookname}")
+    @Path("/getPostsByName/{secretKey}/{bookname}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getPostsByName(@PathParam("bookname") String bookName) throws UnsupportedEncodingException
+    public Response getPostsByName(@PathParam("secretKey") String secretKey, @PathParam("bookname") String bookName) throws UnsupportedEncodingException
     {
+    	if (!restSecretKey.equals(secretKey)) {
+    		return null;
+    	}
     	System.out.println("Book name is: "+bookName);
     	System.out.println("Decoded name is: "+URLDecoder.decode(bookName, "UTF-8"));
     	PostDAO dao = new PostDAO();
@@ -243,5 +278,90 @@ public class CtoFService {
     	GenericEntity<ArrayList<HashMap>> entity = new GenericEntity<ArrayList<HashMap>>(entries) {};
     	return Response.status(200).entity(entries).build();
     }
+    
+    @POST
+    @Path("/addShoppingCart")
+    public Response addShoppingCart(@FormParam("userid") String userid, @FormParam("bidId") String bidId,@FormParam("postId") String postId, @FormParam("secretKey") String secretKey){
+    	if (!restSecretKey.equals(secretKey)) {
+    		return null;
+    	}
+    	System.out.println("HIII");
+    	UserDAO dao = new UserDAO();
+    	User currentUser = dao.getUserById(userid);
+    	PostDAO postDAO = new PostDAO();
+    	Post post = postDAO.getPostForBid(Integer.parseInt(postId));
+    	
+    	BidDAO bidDAO = new BidDAO();
+    	System.out.println("bidid"+bidId);
+    	Bid bid  = bidDAO.getBid(Long.parseLong(bidId));
+    	
+    	ShoppingCart shoppingcart = new ShoppingCart();
+    	shoppingcart.setUser(currentUser);
+    	shoppingcart.setBid(bid);
+    	shoppingcart.setPost(post);
+    	shoppingcart.setQuantity(1);
+    	shoppingcart.setPrice(bid.getBidPrice()*shoppingcart.getQuantity());
+    	Book book = post.getBook();
+    	
+    	
+    	shoppingcart.setDescription(book.getAuthorName()+" ,"+book.getPublisherName());
+    	ShoppingCartDao shoppingcartdao = new ShoppingCartDao();
+    	shoppingcartdao.addItem(shoppingcart);
+    	
+    	return Response.ok().build();
+    	
+    }
+    
+    @GET
+    @Path("/getMyCart/{secretKey}/{userid}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getMyCart(@PathParam("secretKey") String secretKey, @PathParam("userid") String userid)
+    {
+    	if (!restSecretKey.equals(secretKey)) {
+    		return null;
+    	}
+    	System.out.println("Hello");
+    	ShoppingCartDao dao = new ShoppingCartDao();
+    	ArrayList<HashMap> entries = dao.getCartItems(userid);
+    	
+    	GenericEntity<ArrayList<HashMap>> entity = new GenericEntity<ArrayList<HashMap>>(entries) {};
+    	return Response.status(200).entity(entries).build();
+    }
+
+    @DELETE
+    @Path("/deleteItemCart/{shoppingcartid}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteItemCart(@PathParam("shoppingcartid") String shoppingcartid){
+    	System.out.println("in delete");
+    	ShoppingCartDao dao = new ShoppingCartDao();
+    	dao.removeCartItems(shoppingcartid);
+    	
+    	return Response.ok().build();
+    }
+
+    @PUT
+    @Path("/updateItemCart/{shoppingcartid}/{quantity}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response updateItemCart(@PathParam("shoppingcartid") String shoppingcartid , @PathParam("quantity") String quantity){
+    	System.out.println("in update");
+    	ShoppingCartDao dao = new ShoppingCartDao();
+    	dao.updateItem(shoppingcartid,quantity);
+    	return Response.ok().build();
+    }
+
+    @POST
+    @Path("/submitShoppingCart")
+    public Response submitShoppingCart(@FormParam("userid") String userid, @FormParam("secretKey") String secretKey)
+    {
+    	if (!restSecretKey.equals(secretKey)) {
+    		return null;
+    	}
+    	ShoppingCartDao dao = new ShoppingCartDao();
+    	ArrayList<HashMap> entries = dao.getCartItems(userid);
+    	dao.submitCart(entries);
+    	
+    	return Response.ok().build();
+    }
+    
 
 }

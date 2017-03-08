@@ -10,9 +10,21 @@
  <property name="hibernate.connection.username">root</property>
  <property name="hibernate.connection.password">root</property>
  <property name="show_sql">true</property>
+ <!-- <property name="cache.provider_class">com.googlecode.hibernate.memcached.MemcachedCacheProvider</property>
+ <property name="hibernate.Memcached.servers">localhost:11211</property>
+ <property name="hibernate.Memcached.cacheTimeSeconds">300</property>
+ <property name="hibernate.Memcached.connectionFactory">BinaryConnectionFactory</property> -->
+ 
+ <!--<property name="hibernate.cache.use_second_level_cache">true</property> 
+ <property name="hibernate.cache.region.factory_class">com.mc.hibernate.memcached.MemcachedRegionFactory</property>
+<property name="hibernate.memcached.operationTimeout">5000</property>
+<property name="hibernate.memcached.connectionFactory">KetamaConnectionFactory</property>
+<property name="hibernate.memcached.hashAlgorithm">HashAlgorithm.FNV1_64_HASH</property> -->
+ <!-- <property name="hibernate.cache.region.factory_class">org.hibernate.cache.ehcache.EhCacheRegionFactory</property> -->
  <mapping resource="User.hbm.xml"></mapping>
  <mapping resource="Book.hbm.xml"></mapping>
  <mapping resource="Post.hbm.xml"></mapping>
  <mapping resource="Bid.hbm.xml"></mapping>
+ <mapping resource="ShoppingCart.hbm.xml"></mapping>
 </session-factory>
 </hibernate-configuration>

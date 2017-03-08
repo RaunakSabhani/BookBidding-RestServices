@@ -2,18 +2,12 @@ import java.io.Serializable;
 import java.sql.Time;
 import java.sql.Date;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class User implements Serializable{
     private int userId;
      
     private String name;
-    private Date birthDate;
     private Date createdDate;
     private String email;
     private String username;
@@ -38,18 +32,11 @@ public class User implements Serializable{
         this.name = name;
     }
 
-    public Date getBirthDate() {
-        return birthDate;
-    }
-    public void setBirthDate(Date birthDate) {
-        this.birthDate = birthDate;
-    }
-
     public Date getCreatedDate() {
-        return birthDate;
+        return createdDate;
     }
-    public void setCreatedDate(Date birthDate) {
-        this.birthDate = birthDate;
+    public void setCreatedDate(Date createdDate) {
+        this.createdDate = createdDate;
     }
 
     public String getEmail() {
